@@ -4,7 +4,7 @@ import userReducer from "./userSlice"
 
 export const store =  configureStore({
     reducer :{
-        user:userReducer,
+        users:userReducer,
         [apiSlice.reducerPath]:apiSlice.reducer,
     },middleware:(getDefaultMiddleware) => 
         getDefaultMiddleware().concat(apiSlice.middleware),

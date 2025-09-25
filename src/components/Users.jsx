@@ -1,7 +1,7 @@
 import { useGetUsersQuery } from '../api/apiSlice'
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { addUsers } from '../api/userSlice';
+import { addUsers, removeUser } from '../api/userSlice';
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { useEffect } from "react";
@@ -18,9 +18,8 @@ const Users = () => {
     const [error, setError] = useState("");
     const [storedUsers, setStoredUsers] = useState([]);
 
-
+    const remove = useSelector((state) => state.users.users);
     const dispatch = useDispatch();
-    const localUsers = useSelector(state => state.user.users);
 
     const allUsers = [...users, ...storedUsers]
 
@@ -48,8 +47,7 @@ const Users = () => {
         localUsers.push(newUser);
         localStorage.setItem("users", JSON.stringify(localUsers))
 
-          setStoredUsers(localUsers);
-
+        setStoredUsers(localUsers);
 
         setError("")
         setUserName("");
@@ -60,7 +58,6 @@ const Users = () => {
         setAddress("");
         setContact("");
     }
-    console.log(users);
 
     useEffect(() => {
         const usersFromStorage = localStorage.getItem("users");
@@ -68,6 +65,25 @@ const Users = () => {
             setStoredUsers(JSON.parse(usersFromStorage));
         }
     }, []);
+
+    const deleteUser = (id) => {
+        const stored = localStorage.getItem("users");
+        if (stored) {
+            const localUsers = JSON.parse(stored);
+            const filteredUsers = localUsers.filter(u => u.id !== id);
+            localStorage.setItem("users", JSON.stringify(filteredUsers));
+            setStoredUsers(filteredUsers);
+        }
+        dispatch(removeUser(id));
+    }
+
+    useEffect(() => {
+        console.log(remove);
+        console.log(storedUsers)
+    }, [])
+
+    if (isLoading) return <p>Loading...</p>
+    if (error) return <p>Error...</p>
 
     return (
         <>
@@ -130,6 +146,7 @@ const Users = () => {
                 allUsers.map((user) => (
                     <div key={user.id} className="users">
                         <h1>{user.username}</h1>
+                        <button onClick={() => deleteUser(user.id)} >Delete</button>
                         <Link to={`/profile/${user.id}`}>Read...</Link>
                     </div>
                 ))
