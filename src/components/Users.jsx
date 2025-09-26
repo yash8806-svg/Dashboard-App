@@ -1,158 +1,140 @@
-import { useGetUsersQuery } from '../api/apiSlice'
+import { useGetUsersQuery } from '../api/apiSlice';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addUsers, removeUser } from '../api/userSlice';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
-import { useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 
 const Users = () => {
-    const { data: users = [], isLoading, isError } = useGetUsersQuery();
-    const [username, setUserName] = useState("");
-    const [firstname, setFirstName] = useState("");
-    const [lastname, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [address, setAddress] = useState("");
-    const [contact, setContact] = useState("");
-    const [error, setError] = useState("");
-    const [storedUsers, setStoredUsers] = useState([]);
+  const { data: apiUsers = [], isLoading, isError } = useGetUsersQuery();
+  const [username, setUserName] = useState("");
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+  const [contact, setContact] = useState("");
+  const [error, setError] = useState("");
+  const [storedUsers, setStoredUsers] = useState([]);
 
-    const remove = useSelector((state) => state.users.users);
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-    const allUsers = [...users, ...storedUsers]
+  // Load users from localStorage safely
+  useEffect(() => {
+    try {
+      const usersFromStorage = localStorage.getItem("users");
+      const parsedUsers = usersFromStorage && usersFromStorage !== "undefined" ? JSON.parse(usersFromStorage) : [];
+      setStoredUsers(parsedUsers);
 
-    const addUser = (e) => {
-        e.preventDefault();
+      // Populate Redux state without duplication
+      parsedUsers.forEach(user => dispatch(addUsers(user)));
+    } catch (e) {
+      console.error("Failed to parse users from localStorage", e);
+      localStorage.setItem("users", "[]"); // reset corrupted data
+    }
+  }, [dispatch]);
 
-        if (!username.trim() || !firstname.trim() || !lastname.trim() || !email.trim() || !password.trim() || !address.trim() || !contact.trim()) {
-            setError("Please fill the boxes");
-            return;
-        }
-        const newUser = {
-            id: Date.now(),
-            username,
-            name: { firstname, lastname },
-            email,
-            password,
-            address,
-            contact
-        }
-        console.log(newUser)
-        dispatch(addUsers(newUser));
+  // Combine API users and local storage users
+  const allUsers = [...apiUsers, ...storedUsers];
 
-        const storedUsers = localStorage.getItem("users");
-        const localUsers = storedUsers ? JSON.parse(storedUsers) : [];
-        localUsers.push(newUser);
-        localStorage.setItem("users", JSON.stringify(localUsers))
+  const addUser = (e) => {
+    e.preventDefault();
 
-        setStoredUsers(localUsers);
-
-        setError("")
-        setUserName("");
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setAddress("");
-        setContact("");
+    // Validation
+    if (!username.trim() || !firstname.trim() || !lastname.trim() || !email.trim() || !password.trim() || !address.trim() || !contact.trim()) {
+      setError("Please fill all the fields");
+      return;
     }
 
-    useEffect(() => {
-        const usersFromStorage = localStorage.getItem("users");
-        if (usersFromStorage) {
-            setStoredUsers(JSON.parse(usersFromStorage));
-        }
-    }, []);
+    const newUser = {
+      id: Date.now(),
+      username,
+      name: { firstname, lastname },
+      email,
+      password,
+      address,
+      contact
+    };
 
-    const deleteUser = (id) => {
-        const stored = localStorage.getItem("users");
-        if (stored) {
-            const localUsers = JSON.parse(stored);
-            const filteredUsers = localUsers.filter(u => u.id !== id);
-            localStorage.setItem("users", JSON.stringify(filteredUsers));
-            setStoredUsers(filteredUsers);
-        }
-        dispatch(removeUser(id));
-    }
+    // Update Redux
+    dispatch(addUsers(newUser));
 
-    useEffect(() => {
-        console.log(remove);
-        console.log(storedUsers)
-    }, [])
+    // Update localStorage safely
+    const localData = localStorage.getItem("users");
+    const localUsers = localData && localData !== "undefined" ? JSON.parse(localData) : [];
+    localUsers.push(newUser);
+    localStorage.setItem("users", JSON.stringify(localUsers));
+    setStoredUsers(localUsers);
 
-    if (isLoading) return <p>Loading...</p>
-    if (error) return <p>Error...</p>
+    // Reset form
+    setError("");
+    setUserName("");
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPassword("");
+    setAddress("");
+    setContact("");
+  };
 
-    return (
-        <>
+  const deleteUser = (id) => {
+    // Remove from Redux
+    dispatch(removeUser(id));
 
-            <div className="container">
-                <form onSubmit={addUser}>
-                    <label>Username:</label>
-                    <input type="text"
-                        value={username}
-                        placeholder='username'
-                        onChange={(e) => setUserName(e.target.value)}
-                        autoComplete='username' />
+    // Remove from localStorage
+    const stored = localStorage.getItem("users");
+    const localUsers = stored && stored !== "undefined" ? JSON.parse(stored) : [];
+    const updatedUsers = localUsers.filter(user => user.id !== id);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    setStoredUsers(updatedUsers); // update local state for UI
+  };
 
-                    <label>FirstName:</label>
-                    <input type="text"
-                        placeholder='FirstName'
-                        value={firstname}
-                        onChange={(e) => setFirstName(e.target.value)} />
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error loading users!</p>;
 
-                    <label>LastName</label>
-                    <input type="text"
-                        placeholder='LastName'
-                        value={lastname}
-                        onChange={(e) => setLastName(e.target.value)} />
+  return (
+    <>
+      <div className="container">
+        <form onSubmit={addUser}>
+          <label>Username:</label>
+          <input type="text" value={username} placeholder="Username" onChange={(e) => setUserName(e.target.value)} autoComplete="username" />
 
-                    <label>Email:</label>
-                    <input type="email"
-                        placeholder='Email@'
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        autoComplete='email' />
+          <label>First Name:</label>
+          <input type="text" value={firstname} placeholder="First Name" onChange={(e) => setFirstName(e.target.value)} />
 
-                    <label>Password:</label>
-                    <input type="password"
-                        placeholder='password'
-                        autoComplete='current-password'
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)} />
+          <label>Last Name:</label>
+          <input type="text" value={lastname} placeholder="Last Name" onChange={(e) => setLastName(e.target.value)} />
 
-                    <label>Address:</label>
-                    <input type="text"
-                        placeholder='Address'
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)} />
+          <label>Email:</label>
+          <input type="email" value={email} placeholder="Email" onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
 
-                    <label>Contact:</label>
-                    <input type="number"
-                        placeholder='phone'
-                        value={contact}
-                        onChange={(e) => setContact(e.target.value)} />
+          <label>Password:</label>
+          <input type="password" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
 
-                    <button type='submit' >Add</button>
-                </form>
+          <label>Address:</label>
+          <input type="text" value={address} placeholder="Address" onChange={(e) => setAddress(e.target.value)} />
 
-                {error && <p>{error}</p>}
-            </div>
-            {allUsers.length === 0 ? (
-                <p>No users found!</p>
-            ) : (
-                allUsers.map((user) => (
-                    <div key={user.id} className="users">
-                        <h1>{user.username}</h1>
-                        <button onClick={() => deleteUser(user.id)} >Delete</button>
-                        <Link to={`/profile/${user.id}`}>Read...</Link>
-                    </div>
-                ))
-            )}
-        </>
-    )
-}
+          <label>Contact:</label>
+          <input type="tel" value={contact} placeholder="Phone" onChange={(e) => setContact(e.target.value)} />
 
-export default Users
+          <button type="submit">Add</button>
+        </form>
+
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </div>
+
+      {allUsers.length === 0 ? (
+        <p>No users found!</p>
+      ) : (
+        allUsers.map(user => (
+          <div key={user.id} className="users">
+            <h1>{user.username}</h1>
+            <button onClick={() => deleteUser(user.id)}>Delete</button>
+            <Link to={`/profile/${user.id}`}>Read...</Link>
+          </div>
+        ))
+      )}
+    </>
+  );
+};
+
+export default Users;
