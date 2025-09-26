@@ -1,7 +1,7 @@
 import { useGetUsersQuery } from '../api/apiSlice';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { addUsers, removeUser } from '../api/userSlice';
+import { addUsers, removeUser,editUser } from '../api/userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const Users = () => {
@@ -88,6 +88,11 @@ const Users = () => {
     setStoredUsers(updatedUsers); // update local state for UI
   };
 
+  const editUserData = (user) => {
+      dispatch(editUser({id:user.id}))
+      console.log(user.id);
+  }
+
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading users!</p>;
 
@@ -128,6 +133,7 @@ const Users = () => {
         allUsers.map(user => (
           <div key={user.id} className="users">
             <h1>{user.username}</h1>
+            <button onClick={()=>editUserData(user)} >Edit</button>
             <button onClick={() => deleteUser(user.id)}>Delete</button>
             <Link to={`/profile/${user.id}`}>Read...</Link>
           </div>
