@@ -18,7 +18,7 @@ function App() {
        <Sidebar/>
         <Routes>
         <Route path='/products' element={<ProductList/>} />
-        <Route path='/Users' element={<Users/>} />
+        <Route path='/users' element={<Users/>} />
         <Route path='/home' element={<Dashboard/>} />
         <Route path='/profile/:id' element={<Profile/>} />
         </Routes>

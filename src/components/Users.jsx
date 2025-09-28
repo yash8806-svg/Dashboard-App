@@ -1,7 +1,7 @@
 import { useGetUsersQuery } from '../api/apiSlice';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { addUsers, removeUser,editUser } from '../api/userSlice';
+import { addUsers, removeUser, editUser } from '../api/userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const Users = () => {
@@ -14,33 +14,39 @@ const Users = () => {
   const [address, setAddress] = useState("");
   const [contact, setContact] = useState("");
   const [error, setError] = useState("");
-  const [storedUsers, setStoredUsers] = useState([]);
+
+  const reduxUsers = useSelector((state) => state.users.users);
+
+  const allUsers = [...apiUsers, ...reduxUsers];
 
   const dispatch = useDispatch();
 
-  // Load users from localStorage safely
   useEffect(() => {
-    try {
-      const usersFromStorage = localStorage.getItem("users");
-      const parsedUsers = usersFromStorage && usersFromStorage !== "undefined" ? JSON.parse(usersFromStorage) : [];
-      setStoredUsers(parsedUsers);
+    const storedUsers = localStorage.getItem("users");
+    const parsedUsers = storedUsers ? JSON.parse(storedUsers) : [];
 
-      // Populate Redux state without duplication
-      parsedUsers.forEach(user => dispatch(addUsers(user)));
-    } catch (e) {
-      console.error("Failed to parse users from localStorage", e);
-      localStorage.setItem("users", "[]"); // reset corrupted data
+    if(parsedUsers.length > 0 && reduxUsers.length === 0){
+        parsedUsers.forEach(user => dispatch(addUsers(user)))
     }
-  }, [dispatch]);
+    console.log("saved"+parsedUsers)
+  }, [dispatch])
 
-  // Combine API users and local storage users
-  const allUsers = [...apiUsers, ...storedUsers];
+  useEffect(() => {
+      localStorage.setItem("users", JSON.stringify(reduxUsers));
+  }, [reduxUsers])
+
 
   const addUser = (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!username.trim() || !firstname.trim() || !lastname.trim() || !email.trim() || !password.trim() || !address.trim() || !contact.trim()) {
+
+    if (!username.trim() ||
+      !firstname.trim() ||
+      !lastname.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !address.trim() ||
+      !contact.trim()) {
       setError("Please fill all the fields");
       return;
     }
@@ -55,17 +61,8 @@ const Users = () => {
       contact
     };
 
-    // Update Redux
     dispatch(addUsers(newUser));
 
-    // Update localStorage safely
-    const localData = localStorage.getItem("users");
-    const localUsers = localData && localData !== "undefined" ? JSON.parse(localData) : [];
-    localUsers.push(newUser);
-    localStorage.setItem("users", JSON.stringify(localUsers));
-    setStoredUsers(localUsers);
-
-    // Reset form
     setError("");
     setUserName("");
     setFirstName("");
@@ -77,21 +74,9 @@ const Users = () => {
   };
 
   const deleteUser = (id) => {
-    // Remove from Redux
-    dispatch(removeUser(id));
-
-    // Remove from localStorage
-    const stored = localStorage.getItem("users");
-    const localUsers = stored && stored !== "undefined" ? JSON.parse(stored) : [];
-    const updatedUsers = localUsers.filter(user => user.id !== id);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    setStoredUsers(updatedUsers); // update local state for UI
-  };
-
-  const editUserData = (user) => {
-      dispatch(editUser({id:user.id}))
-      console.log(user.id);
+    dispatch(removeUser(id))
   }
+
 
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading users!</p>;
@@ -133,7 +118,6 @@ const Users = () => {
         allUsers.map(user => (
           <div key={user.id} className="users">
             <h1>{user.username}</h1>
-            <button onClick={()=>editUserData(user)} >Edit</button>
             <button onClick={() => deleteUser(user.id)}>Delete</button>
             <Link to={`/profile/${user.id}`}>Read...</Link>
           </div>
