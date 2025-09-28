@@ -15,6 +15,7 @@ const Users = () => {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [editId, setEditId] = useState("");
+  const [searchUser, setSearchUser] = useState("");
 
   const reduxUsers = useSelector((state) => state.users.users);
 
@@ -33,7 +34,13 @@ const Users = () => {
 
   useEffect(() => {
     localStorage.setItem("users", JSON.stringify(reduxUsers));
-  }, [reduxUsers])
+  }, [reduxUsers]);
+
+  const filterByName = allUsers.filter(user => {
+      const filter = user.name.firstname.toLowerCase().includes(searchUser.toLowerCase());
+      return filter;
+  } 
+  )
 
 
   const addUser = (e) => {
@@ -127,10 +134,14 @@ const Users = () => {
         {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
 
-      {allUsers.length === 0 ? (
+      <div className="input">
+        <input type="text" placeholder='Search user' value={searchUser} onChange={(e)=>setSearchUser(e.target.value)}/>
+      </div>
+
+      {filterByName.length === 0 ? (
         <p>No users found!</p>
       ) : (
-        allUsers.map(user => (
+        filterByName.map(user => (
           <div key={user.id} className="users">
             <h1>{user.username}</h1>
             <button onClick={()=>editUsers(user)} >Edit</button>

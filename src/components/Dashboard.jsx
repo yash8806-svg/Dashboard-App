@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useGetOrdersQuery, useGetProductsQuery, useGetUsersQuery } from '../api/apiSlice'
+import Charts from './Charts';
 
 const Dashboard = () => {
   const { data: users = [] } = useGetUsersQuery();
@@ -21,10 +22,23 @@ const Dashboard = () => {
     acc[month] += orderRevenue;
 
     return acc
-  }, {})
+  }, {});
+
   const monthlyRevenueArr = Object.entries(monthlyRevenue).map(([month, revenue]) => ({
     month,
     revenue
+  }));
+
+   const monthlyOrders = orders.reduce((acc, order) => {
+    const month = new Date(order.date).toLocaleString("default", { month: "short" });
+    if (!acc[month]) acc[month] = 0;
+    acc[month] += 1;
+    return acc;
+  }, {});
+
+  const monthlyOrdersArr = Object.entries(monthlyOrders).map(([month, orders]) => ({
+    month,
+    orders
   }));
 
 
@@ -41,6 +55,8 @@ const Dashboard = () => {
       <p>Total Users : {users.length + localUsers.length}</p>
       <p>Total Orders : {orders.length}</p>
       <p>Total Products: {products.length}</p>
+
+      <Charts revenueData={monthlyRevenueArr} />
     </div>
   )
 }

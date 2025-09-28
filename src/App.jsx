@@ -7,6 +7,7 @@ import ProductList from './components/ProductList';
 import Users from './components/Users';
 import { BrowserRouter,Routes,Route } from 'react-router-dom';
 import Profile from './components/Profile';
+import Charts from './components/Charts';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -21,6 +22,7 @@ function App() {
         <Route path='/users' element={<Users/>} />
         <Route path='/home' element={<Dashboard/>} />
         <Route path='/user/:id' element={<Profile/>} />
+        <Route path='/chart' element={<Charts/>} />
         </Routes>
     </BrowserRouter>
     </>

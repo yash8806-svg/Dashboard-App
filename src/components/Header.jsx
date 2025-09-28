@@ -5,8 +5,6 @@ const Header = () => {
     <div>
        <div className="header">
 
-        <input type="text" />
-
         <h1>Welcome</h1>
         <div>Welcome, Yash</div>
        </div>
