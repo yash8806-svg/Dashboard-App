@@ -11,9 +11,10 @@ const Users = () => {
   const [lastname, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [address, setAddress] = useState("");
-  const [contact, setContact] = useState("");
+  const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [editId, setEditId] = useState("");
 
   const reduxUsers = useSelector((state) => state.users.users);
 
@@ -25,28 +26,26 @@ const Users = () => {
     const storedUsers = localStorage.getItem("users");
     const parsedUsers = storedUsers ? JSON.parse(storedUsers) : [];
 
-    if(parsedUsers.length > 0 && reduxUsers.length === 0){
-        parsedUsers.forEach(user => dispatch(addUsers(user)))
+    if (parsedUsers.length > 0 && reduxUsers.length === 0) {
+      parsedUsers.forEach(user => dispatch(addUsers(user)))
     }
-    console.log("saved"+parsedUsers)
   }, [dispatch])
 
   useEffect(() => {
-      localStorage.setItem("users", JSON.stringify(reduxUsers));
+    localStorage.setItem("users", JSON.stringify(reduxUsers));
   }, [reduxUsers])
 
 
   const addUser = (e) => {
     e.preventDefault();
 
-
     if (!username.trim() ||
       !firstname.trim() ||
       !lastname.trim() ||
       !email.trim() ||
       !password.trim() ||
-      !address.trim() ||
-      !contact.trim()) {
+      !city.trim() ||
+      !phone.trim()) {
       setError("Please fill all the fields");
       return;
     }
@@ -57,25 +56,41 @@ const Users = () => {
       name: { firstname, lastname },
       email,
       password,
-      address,
-      contact
+      address: { city },
+      phone,
     };
+    console.log(newUser)
 
-    dispatch(addUsers(newUser));
-
+    if(editId){
+      dispatch(editUser({id:editId,newUser}))
+    }else {
+      dispatch(addUsers(newUser));
+    }
     setError("");
     setUserName("");
     setFirstName("");
     setLastName("");
     setEmail("");
     setPassword("");
-    setAddress("");
-    setContact("");
+    setCity("");
+    setPhone("");
   };
 
   const deleteUser = (id) => {
     dispatch(removeUser(id))
   }
+
+ const editUsers = (user) => {
+  setEditId(user.id);
+  setUserName(user.username);
+  setFirstName(user.name.firstname);
+  setLastName(user.name.lastname);
+  setCity(user.address.city);
+  setPhone(user.phone);
+  setEmail(user.email);
+  setPassword(user.password);
+};
+
 
 
   if (isLoading) return <p>Loading...</p>;
@@ -100,13 +115,13 @@ const Users = () => {
           <label>Password:</label>
           <input type="password" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
 
-          <label>Address:</label>
-          <input type="text" value={address} placeholder="Address" onChange={(e) => setAddress(e.target.value)} />
+          <label>city:</label>
+          <input type="text" value={city} placeholder="city" onChange={(e) => setCity(e.target.value)} />
 
-          <label>Contact:</label>
-          <input type="tel" value={contact} placeholder="Phone" onChange={(e) => setContact(e.target.value)} />
+          <label>phone:</label>
+          <input type="tel" value={phone} placeholder="Phone" onChange={(e) => setPhone(e.target.value)} />
 
-          <button type="submit">Add</button>
+          <button type="submit">{editId ? "Update":"Add"}</button>
         </form>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
@@ -118,8 +133,9 @@ const Users = () => {
         allUsers.map(user => (
           <div key={user.id} className="users">
             <h1>{user.username}</h1>
+            <button onClick={()=>editUsers(user)} >Edit</button>
             <button onClick={() => deleteUser(user.id)}>Delete</button>
-            <Link to={`/profile/${user.id}`}>Read...</Link>
+            <Link to={`/user/${user.id}`}>Read...</Link>
           </div>
         ))
       )}

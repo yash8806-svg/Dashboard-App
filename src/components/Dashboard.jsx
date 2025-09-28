@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux';
 import { useGetOrdersQuery, useGetProductsQuery, useGetUsersQuery } from '../api/apiSlice'
 
 const Dashboard = () => {
   const { data: users = [] } = useGetUsersQuery();
   const { data: orders = [] } = useGetOrdersQuery();
   const { data: products = [] } = useGetProductsQuery();
+
+  const localUsers = useSelector(state => state.users.users); 
+  console.log(localUsers.length);
 
   console.log(orders);
   const monthlyRevenue = orders.reduce((acc, order) => {
@@ -35,7 +38,7 @@ const Dashboard = () => {
           </li>
         ))}
       </ul>
-      <p>Total Users : {users.length}</p>
+      <p>Total Users : {users.length + localUsers.length}</p>
       <p>Total Orders : {orders.length}</p>
       <p>Total Products: {products.length}</p>
     </div>

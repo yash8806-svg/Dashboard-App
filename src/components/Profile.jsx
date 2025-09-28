@@ -1,14 +1,20 @@
-import React, { use } from 'react'
 import { useParams } from 'react-router-dom';
 import { useGetUsersQuery } from '../api/apiSlice';
+import { useSelector } from 'react-redux';
+
 
 
 const Profile = () => {
     const { data: users = [] } = useGetUsersQuery();
     const { id } = useParams();
 
-    const user = users.find(item => item.id === Number(id));
-    console.log(user);
+    const localUsers = useSelector(state => state.users.users);
+
+    const allUsers = [...users,...localUsers];
+    console.log(allUsers);
+
+    const user = allUsers.find(item => item.id === Number(id));
+    console.log(user)
 
     if(!user) return <p>No profile found!</p>
 
@@ -19,7 +25,7 @@ const Profile = () => {
             <p>Name: {user.name.firstname} {user.name.lastname} </p>
             <p>Email: {user.email}</p>
             <p>Password: {user.password}</p>
-            <p>Contact:{user.phone}</p>
+            <p>Phone:{user.phone}</p>
             <p>Address: {user.address.city}</p>
             </div>
         </>
