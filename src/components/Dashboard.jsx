@@ -7,19 +7,23 @@ const Dashboard = () => {
   const { data: orders = [] } = useGetOrdersQuery();
   const { data: products = [] } = useGetProductsQuery();
 
-  const localUsers = useSelector(state => state.users.users); 
+  const localUsers = useSelector(state => state.users.users);
   console.log(localUsers.length);
 
   console.log(orders);
+  if (!orders.length || !products.length) {
+    return <p>Loading data...</p>
+  }
+
   const monthlyRevenue = orders.reduce((acc, order) => {
     const month = new Date(order.date).toLocaleString("default", { month: "short" });
+
     const orderRevenue = order.products.reduce((sum, ord) => {
       const product = products.find(item => item.id === ord.productId);
       return product ? sum + (ord.quantity * product.price) : sum;
     }, 0);
 
-    if (!acc[month]) acc[month] = 0;
-    acc[month] += orderRevenue;
+    acc[month] = (acc[month] || 0) + orderRevenue;
 
     return acc
   }, {});
@@ -29,7 +33,7 @@ const Dashboard = () => {
     revenue
   }));
 
-   const monthlyOrders = orders.reduce((acc, order) => {
+  const monthlyOrders = orders.reduce((acc, order) => {
     const month = new Date(order.date).toLocaleString("default", { month: "short" });
     if (!acc[month]) acc[month] = 0;
     acc[month] += 1;
@@ -56,7 +60,11 @@ const Dashboard = () => {
       <p>Total Orders : {orders.length}</p>
       <p>Total Products: {products.length}</p>
 
-      <Charts revenueData={monthlyRevenueArr} />
+      {monthlyRevenueArr.length > 0 ? (
+        <Charts revenueData={monthlyRevenueArr} />
+      ) : (
+        <p>No revenue data yet</p>
+      )}
     </div>
   )
 }
