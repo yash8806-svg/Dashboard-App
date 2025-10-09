@@ -2,8 +2,6 @@ import { useParams } from 'react-router-dom';
 import { useGetUsersQuery } from '../api/apiSlice';
 import { useSelector } from 'react-redux';
 
-
-
 const Profile = () => {
     const { data: users = [] } = useGetUsersQuery();
     const { id } = useParams();
@@ -11,10 +9,8 @@ const Profile = () => {
     const localUsers = useSelector(state => state.users.users);
 
     const allUsers = [...users,...localUsers];
-    console.log(allUsers);
 
     const user = allUsers.find(item => item.id === Number(id));
-    console.log(user)
 
     if(!user) return <p>No profile found!</p>
 

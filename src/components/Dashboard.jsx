@@ -8,9 +8,7 @@ const Dashboard = () => {
   const { data: products = [] } = useGetProductsQuery();
 
   const localUsers = useSelector(state => state.users.users);
-  console.log(localUsers.length);
 
-  console.log(orders);
   if (!orders.length || !products.length) {
     return <p>Loading data...</p>
   }
@@ -61,7 +59,9 @@ const Dashboard = () => {
       <p>Total Products: {products.length}</p>
 
       {monthlyRevenueArr.length > 0 ? (
-        <Charts revenueData={monthlyRevenueArr} />
+        <div style={{width:"100%",height:"400"}} >
+          <Charts revenueData={monthlyRevenueArr} />
+        </div>
       ) : (
         <p>No revenue data yet</p>
       )}

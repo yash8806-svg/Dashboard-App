@@ -3,7 +3,6 @@ import { useGetProductsQuery } from '../api/apiSlice'
 
 const ProductList = () => {
 const {data : products = []} = useGetProductsQuery();
-console.log(products);
 
   return (
     <>

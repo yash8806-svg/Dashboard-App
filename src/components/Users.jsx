@@ -66,7 +66,6 @@ const Users = () => {
       address: { city },
       phone,
     };
-    console.log(newUser)
 
     if(editId){
       dispatch(editUser({id:editId,newUser}))
